@@ -13,6 +13,8 @@ import {
 } from '../src'
 import { startDebug } from '../src/debug'
 
+// tslint:disable:no-invalid-this
+
 const file = 'tmp.txt'
 
 describe('Constructing a SmartBuffer', () => {
@@ -597,6 +599,7 @@ describe('Displaying the buffer as a string', () => {
     assert.throws(() => {
       const invalidencoding: any = 'invalid'
       const strError = sbuff.toString(invalidencoding)
+      console.log(strError)
     })
   })
 })
