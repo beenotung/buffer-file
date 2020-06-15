@@ -1,8 +1,10 @@
-# file-buffer
+# smart-buffer-file
 
 A file-based Buffer wrapper that adds automatic read & write offset tracking, string operations, and more.
 
-[![npm Package Version](https://img.shields.io/npm/v/file-buffer.svg?maxAge=2592000)](https://www.npmjs.com/package/file-buffer)
+Inspired from [smart-buffer](https://github.com/JoshGlazebrook/smart-buffer)
+
+[![npm Package Version](https://img.shields.io/npm/v/smart-buffer-file.svg?maxAge=2592000)](https://www.npmjs.com/package/smart-buffer-file)
 
 **Key Features**:
 * Proxies all of the Buffer write and read functions

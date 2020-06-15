@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/file-buffer.iml" filepath="$PROJECT_DIR$/.idea/file-buffer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/smart-buffer-file.iml" filepath="$PROJECT_DIR$/.idea/smart-buffer-file.iml" />
     </modules>
   </component>
 </project>
