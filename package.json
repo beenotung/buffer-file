@@ -1,6 +1,6 @@
 {
   "name": "smart-buffer-file",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A file-based Buffer wrapper that adds automatic read & write offset tracking, string operations, and more.",
   "keywords": [
     "file",
