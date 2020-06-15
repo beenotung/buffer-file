@@ -22,3 +22,6 @@ Inspired from [smart-buffer](https://github.com/JoshGlazebrook/smart-buffer)
 ## Tests
 - [x] sequential read/write objects with msgpack
 - [ ] full test suit based on smart-buffer
+
+## License
+[BSD 2-Clause License](./LICENSE)
