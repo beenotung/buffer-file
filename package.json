@@ -1,6 +1,6 @@
 {
   "name": "buffer-file",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "A file-based Buffer wrapper that adds automatic read & write offset tracking, string operations, and more.",
   "keywords": [
     "file",
