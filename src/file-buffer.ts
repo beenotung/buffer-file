@@ -379,6 +379,7 @@ export class FileBuffer {
     buffer.writeDoubleLE(value, 0)
     return this.writeBuffer(buffer, offset)
   }
+
   static async fromFile(file: string, flags = 'w+') {
     const fd = await fs.promises.open(file, flags)
     return new FileBuffer(fd)

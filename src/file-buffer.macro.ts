@@ -24,11 +24,6 @@ import fs from 'fs'
 import { ensureEnoughRead, ensureEnoughWrite, expandArguments, writeBufferNT } from './utils'
 
 export class FileBuffer {
-  static async fromFile(file: string, flags = 'w+') {
-    const fd = await fs.promises.open(file, flags)
-    return new FileBuffer(fd)
-  }
-
   writeOffset = 0
   readOffset = 0
 
@@ -203,6 +198,10 @@ export class FileBuffer {
   `
   }).join('').trim()}
 
+  static async fromFile(file: string, flags = 'w+') {
+    const fd = await fs.promises.open(file, flags)
+    return new FileBuffer(fd)
+  }
 }
 `.trim()
 }

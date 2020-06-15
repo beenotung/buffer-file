@@ -327,6 +327,7 @@ export class FileBufferSync {
     buffer.writeDoubleLE(value, 0)
     return this.writeBuffer(buffer, offset)
   }
+
   static fromFile(file: string | number) {
     if (typeof file === 'number') {
       return new FileBufferSync(file)

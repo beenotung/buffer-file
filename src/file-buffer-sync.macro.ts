@@ -24,19 +24,6 @@ import fs from 'fs'
 import { ensureEnoughRead, ensureEnoughWrite, expandArguments, writeBufferNT } from './utils'
 
 export class FileBufferSync {
-  static fromFile(file: string | number) {
-    if (typeof file === 'number') {
-      return new FileBufferSync(file)
-    }
-    if (fs.existsSync(file)) {
-      const fd = fs.openSync(file, 'r+')
-      return new FileBufferSync(fd)
-    } else {
-      const fd = fs.openSync(file, 'w+')
-      return new FileBufferSync(fd)
-    }
-  }
-
   writeOffset = 0
   readOffset = 0
 
@@ -194,6 +181,18 @@ export class FileBufferSync {
   `
   }).join('').trim()}
 
+  static fromFile(file: string | number) {
+    if (typeof file === 'number') {
+      return new FileBufferSync(file)
+    }
+    if (fs.existsSync(file)) {
+      const fd = fs.openSync(file, 'r+')
+      return new FileBufferSync(fd)
+    } else {
+      const fd = fs.openSync(file, 'w+')
+      return new FileBufferSync(fd)
+    }
+  }
 }
 `.trim()
 }
