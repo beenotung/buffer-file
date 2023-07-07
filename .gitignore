@@ -12,3 +12,6 @@ dist/
 # test files
 tmp.log
 tmp.txt
+
+# coverage report
+.nyc_output
