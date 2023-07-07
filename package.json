@@ -19,17 +19,16 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "test": "npm run rawtest",
-    "rawtest": "NODE_ENV=test mocha --recursive --require ts-node/register test/**/*.ts",
+    "mocha": "NODE_ENV=test mocha --recursive --require ts-node/register test/**/*.ts",
     "coverage": "NODE_ENV=test nyc npm test",
     "coveralls": "NODE_ENV=test nyc npm test && nyc report --reporter=text-lcov | coveralls",
     "clean": "rimraf dist",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "macro": "tsc-macro",
-    "prebuild": "run-s clean macro format",
-    "build": "tsc -p tsconfig.build.json",
-    "pretest": "npm run format && npm run build",
-    "prepublishOnly": "npm run rawtest && npm run build"
+    "build": "run-s clean macro format tsc",
+    "tsc": "tsc -p tsconfig.build.json",
+    "test": "run-s format build mocha",
+    "prepublishOnly": "run-s mocha build"
   },
   "directories": {
     "test": "test"
