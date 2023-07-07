@@ -14,10 +14,6 @@ export class FileBuffer {
 
   constructor(public fd: fs.promises.FileHandle) {}
 
-  get length(): number {
-    return fs.fstatSync(this.fd.fd).size
-  }
-
   sync() {
     return this.fd.sync()
   }
@@ -43,6 +39,10 @@ export class FileBuffer {
     this.writePromise = this.writePromise.then(() => this.fd.truncate(0))
     this.rewind(0)
     return this
+  }
+
+  get length(): number {
+    return fs.fstatSync(this.fd.fd).size
   }
 
   async getLength(): Promise<number> {

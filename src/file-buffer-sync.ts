@@ -12,17 +12,6 @@ export class FileBufferSync {
 
   constructor(public fd: number) {}
 
-  get length(): number {
-    return fs.fstatSync(this.fd).size
-  }
-
-  /**
-   * Gets the remaining data left to be read from the FileBuffer instance.
-   */
-  get remaining(): number {
-    return this.length - this.readOffset
-  }
-
   sync() {
     fs.fsyncSync(this.fd)
     return this
@@ -49,6 +38,17 @@ export class FileBufferSync {
   clear() {
     fs.ftruncateSync(this.fd, 0)
     return this.rewind(0)
+  }
+
+  get length(): number {
+    return fs.fstatSync(this.fd).size
+  }
+
+  /**
+   * Gets the remaining data left to be read from the FileBuffer instance.
+   */
+  get remaining(): number {
+    return this.length - this.readOffset
   }
 
   toBuffer(): Buffer {
