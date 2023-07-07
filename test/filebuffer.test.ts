@@ -4,14 +4,13 @@
 import { assert } from 'chai'
 import fs from 'fs'
 import 'mocha'
+import { FileBuffer, FileBufferSync } from '../src'
+import { startDebug } from '../src/debug'
 import {
   ensureEnoughRead,
   ensureEnoughWrite,
   expandArguments,
-  FileBuffer,
-  FileBufferSync,
-} from '../src'
-import { startDebug } from '../src/debug'
+} from '../src/utils'
 
 // tslint:disable:no-invalid-this
 
@@ -33,24 +32,26 @@ describe('Reading/Writing To/From SmartBuffer', () => {
    * Technically, if one of these works, they all should. But they're all here anyways.
    */
   describe('Numeric Values', () => {
-    const reader = FileBufferSync.fromFile(file)
-    reader.writeInt8(0x44)
-    reader.writeUInt8(0xff)
-    reader.writeInt16BE(0x6699)
-    reader.writeInt16LE(0x6699)
-    reader.writeUInt16BE(0xffdd)
-    reader.writeUInt16LE(0xffdd)
-    reader.writeInt32BE(0x77889900)
-    reader.writeInt32LE(0x77889900)
-    reader.writeUInt32BE(0xffddccbb)
-    reader.writeUInt32LE(0xffddccbb)
-    reader.writeFloatBE(1.234)
-    reader.writeFloatLE(1.234)
-    reader.writeDoubleBE(1.23456789)
-    reader.writeDoubleLE(1.23456789)
-    reader.writeUInt8(0xc8, 0)
-    reader.writeUInt16LE(0xc8, 4)
-    reader.writeUInt16BE(0x6699)
+    let reader: FileBufferSync
+    before(() => {
+      reader = FileBufferSync.fromFile(file)
+      reader.writeUInt8(0x44)
+      reader.writeUInt8(0xff)
+      reader.writeInt16BE(0x00c8)
+      reader.writeInt16LE(0x6699)
+      reader.writeUInt16BE(0xffdd)
+      reader.writeUInt16LE(0xffdd)
+      reader.writeInt32BE(0x77889900)
+      reader.writeInt32LE(0x77889900)
+      reader.writeUInt32BE(0xffddccbb)
+      reader.writeUInt32LE(0xffddccbb)
+      reader.writeFloatBE(1.234)
+      reader.writeFloatLE(1.234)
+      reader.writeDoubleBE(1.23456789)
+      reader.writeDoubleLE(1.23456789)
+      reader.writeUInt8(0xc8, 0)
+      reader.writeUInt16LE(0x00c8, 4)
+    })
 
     it('should equal the correct values that were written above', () => {
       const log = startDebug()
@@ -58,12 +59,12 @@ describe('Reading/Writing To/From SmartBuffer', () => {
         read: reader.readOffset,
         write: reader.writeOffset,
         len: reader.length,
+        fs: fs.readFileSync('tmp.txt'),
       })
       assert.strictEqual(reader.readUInt8(), 0xc8)
       assert.strictEqual(reader.readUInt8(), 0xff)
-      assert.strictEqual(reader.readInt16BE(), 0x6699)
-      assert.strictEqual(reader.readInt16LE(), 0xc8)
-      assert.strictEqual(reader.readInt16LE(), 0x6699)
+      assert.strictEqual(reader.readInt16BE(), 0x00c8)
+      assert.strictEqual(reader.readInt16LE(), 0x00c8)
       assert.strictEqual(reader.readUInt16BE(), 0xffdd)
       assert.strictEqual(reader.readUInt16LE(), 0xffdd)
       assert.strictEqual(reader.readInt32BE(), 0x77889900)
@@ -257,20 +258,28 @@ describe('Reading/Writing To/From SmartBuffer', () => {
   })
 
   describe('Basic String Values', () => {
-    const reader = FileBufferSync.fromFile(file)
-    reader.writeString('hello')
-    reader.writeString('world')
-    reader.writeString('✎✏✎✏✎✏')
-    reader.writeString('first', 0)
-    reader.writeString('hello', 'ascii')
-    reader.writeString('hello')
+    let reader: FileBufferSync
+    before(() => {
+      reader = FileBufferSync.fromFile(file)
+      reader.writeString('HELLO')
+      reader.writeString('WORLD')
+      reader.writeString('FIRST')
+      reader.writeString('✎✏✎✏✎✏')
+      reader.writeString('last')
+      reader.writeString('first', 0)
+      reader.writeString('hello', 'ascii')
+      reader.writeString('world')
+    })
 
     it('should equal the correct strings that were written prior', () => {
       assert.strictEqual(reader.readString(5), 'first')
       assert.strictEqual(reader.readString(5), 'hello')
       assert.strictEqual(reader.readString(5), 'world')
-      assert.strictEqual(reader.readString('✎✏✎✏✎✏'.length), '✎✏✎✏✎✏')
-      assert.strictEqual(reader.readString(5, 'ascii'), 'hello')
+      assert.strictEqual(
+        reader.readString(Buffer.from('✎✏✎✏✎✏').length),
+        '✎✏✎✏✎✏',
+      )
+      assert.strictEqual(reader.readString(4, 'ascii'), 'last')
     })
 
     it('should throw an exception if passing in an invalid string length to read (infinite)', () => {
@@ -378,10 +387,13 @@ describe('Reading/Writing To/From SmartBuffer', () => {
 
   describe('Buffer Values', () => {
     describe('Writing buffer to position 0', () => {
-      const buff = FileBufferSync.fromFile(file)
-      const frontBuff = new Buffer([1, 2, 3, 4, 5, 6])
-      buff.writeStringNT('hello')
-      buff.writeBuffer(frontBuff, 0)
+      const frontBuff = Buffer.from([1, 2, 3, 4, 5, 6])
+      let buff: FileBufferSync
+      before(() => {
+        buff = FileBufferSync.fromFile(file)
+        buff.writeStringNT('hello')
+        buff.writeBuffer(frontBuff, 0)
+      })
 
       it('should write the buffer to the front of the smart buffer instance', () => {
         const readBuff = buff.readBuffer(frontBuff.length)
@@ -390,10 +402,13 @@ describe('Reading/Writing To/From SmartBuffer', () => {
     })
 
     describe('Writing null terminated buffer to position 0', () => {
-      const buff = FileBufferSync.fromFile(file)
-      const frontBuff = new Buffer([1, 2, 3, 4, 5, 6])
-      buff.writeStringNT('hello')
-      buff.writeBufferNT(frontBuff, 0)
+      const frontBuff = Buffer.from([1, 2, 3, 4, 5, 6])
+      let buff: FileBufferSync
+      before(() => {
+        buff = FileBufferSync.fromFile(file)
+        buff.writeStringNT('hello')
+        buff.writeBufferNT(frontBuff, 0)
+      })
 
       it('should write the buffer to the front of the smart buffer instance', () => {
         const readBuff = buff.readBufferNT()
@@ -402,9 +417,12 @@ describe('Reading/Writing To/From SmartBuffer', () => {
     })
 
     describe('Explicit lengths', () => {
-      const buff = new Buffer([0x01, 0x02, 0x04, 0x08, 0x16, 0x32, 0x64])
-      const reader = FileBufferSync.fromFile(file)
-      reader.writeBuffer(buff)
+      const buff = Buffer.from([0x01, 0x02, 0x04, 0x08, 0x16, 0x32, 0x64])
+      let reader: FileBufferSync
+      before(() => {
+        reader = FileBufferSync.fromFile(file)
+        reader.writeBuffer(buff)
+      })
 
       it('should equal the buffer that was written above.', () => {
         assert.deepEqual(reader.readBuffer(7), buff)
@@ -412,9 +430,12 @@ describe('Reading/Writing To/From SmartBuffer', () => {
     })
 
     describe('Implicit lengths', () => {
-      const buff = new Buffer([0x01, 0x02, 0x04, 0x08, 0x16, 0x32, 0x64])
-      const reader = FileBufferSync.fromFile(file)
-      reader.writeBufferNT(buff)
+      const buff = Buffer.from([0x01, 0x02, 0x04, 0x08, 0x16, 0x32, 0x64])
+      let reader: FileBufferSync
+      before(() => {
+        reader = FileBufferSync.fromFile(file)
+        reader.writeBufferNT(buff)
+      })
 
       it('should equal the buffer that was written above.', () => {
         assert.deepEqual(reader.readBufferNT(), buff)
@@ -422,13 +443,17 @@ describe('Reading/Writing To/From SmartBuffer', () => {
     })
 
     describe('Null Terminated Buffer Reading', () => {
-      const buff = FileBufferSync.fromFile(file)
-      buff.writeBuffer(
-        new Buffer([0x01, 0x02, 0x03, 0x04, 0x00, 0x01, 0x02, 0x03]),
-      )
+      let read1: Buffer
+      let read2: Buffer
+      before(() => {
+        const buff = FileBufferSync.fromFile(file)
+        buff.writeBuffer(
+          Buffer.from([0x01, 0x02, 0x03, 0x04, 0x00, 0x01, 0x02, 0x03]),
+        )
 
-      const read1 = buff.readBufferNT()
-      const read2 = buff.readBufferNT()
+        read1 = buff.readBufferNT()
+        read2 = buff.readBufferNT()
+      })
 
       it('Should return a length of 4 for the four bytes before the first null in the buffer.', () => {
         assert.equal(read1.length, 4)
@@ -463,26 +488,30 @@ describe('Reading/Writing To/From SmartBuffer', () => {
     })
 
     describe('Writing values into specific positions', () => {
-      const reader = FileBufferSync.fromFile(file)
+      let reader: FileBufferSync
 
-      reader.writeUInt16LE(0x0060)
-      reader.writeStringNT('something')
-      reader.writeUInt32LE(8485934)
-      reader.writeUInt16LE(6699)
-      reader.writeStringNT('else')
-      reader.writeUInt16LE(reader.length - 2, 2)
+      before(() => {
+        reader = FileBufferSync.fromFile(file)
+
+        reader.writeUInt16LE(0x0060)
+        reader.writeStringNT('something')
+        reader.writeUInt32LE(8485934)
+        reader.writeUInt16LE(6699)
+        reader.writeStringNT('else')
+        reader.writeUInt16LE(reader.length - 2, 2)
+      })
 
       it('should equal the size of the remaining data in the buffer', () => {
         reader.readUInt16LE()
         const size = reader.readUInt16LE()
-        assert.strictEqual(reader.remaining, size)
+        assert.strictEqual(reader.remaining, size - 2)
       })
     })
 
     describe('Adding more data to the buffer than the internal buffer currently allows.', () => {
       it('Should automatically adjust internal buffer size when needed', () => {
         const writer = FileBufferSync.fromFile(file)
-        const largeBuff = new Buffer(10000)
+        const largeBuff = Buffer.alloc(10000)
 
         writer.writeBuffer(largeBuff)
 
@@ -493,10 +522,12 @@ describe('Reading/Writing To/From SmartBuffer', () => {
 })
 
 describe('Skipping around data', () => {
-  const writer = FileBufferSync.fromFile(file)
-  writer.writeStringNT('hello')
-  writer.writeUInt16LE(6699)
-  writer.writeStringNT('world!')
+  before(() => {
+    const writer = FileBufferSync.fromFile(file)
+    writer.writeStringNT('hello')
+    writer.writeUInt16LE(6699)
+    writer.writeStringNT('world!')
+  })
 
   it('Should equal the UInt16 that was written above', () => {
     const reader = FileBufferSync.fromFile(file)
@@ -518,8 +549,12 @@ describe('Skipping around data', () => {
 })
 
 describe('Setting write and read offsets', () => {
-  const writer = FileBufferSync.fromFile(file)
-  writer.writeString('hellotheremynameisjosh')
+  let writer: FileBufferSync
+
+  before(() => {
+    writer = FileBufferSync.fromFile(file)
+    writer.writeString('hellotheremynameisjosh')
+  })
 
   it('should set the write offset to 10', () => {
     writer.writeOffset = 10
@@ -533,13 +568,13 @@ describe('Setting write and read offsets', () => {
 
   it('should throw an error when given an offset that is out of bounds', () => {
     assert.throws(() => {
-      writer.readOffset = -1
+      writer.rewind(-1)
     })
   })
 
   it('should throw an error when given an offset that is out of bounds', () => {
     assert.throws(() => {
-      writer.writeOffset = 1000
+      writer.rewind(1000)
     })
   })
 })
@@ -580,19 +615,22 @@ describe('Clearing the buffer', () => {
 })
 
 describe('Displaying the buffer as a string', () => {
-  const buff = new Buffer([1, 2, 3, 4])
-  fs.writeFileSync(file, buff)
-  const sbuff = FileBufferSync.fromFile(file)
+  const buff = Buffer.from([1, 2, 3, 4])
+  const str = buff.toString('binary')
+  const str64 = buff.toString('base64')
+  let sbuff: FileBufferSync
 
-  const str = buff.toString()
-  const str64 = buff.toString('binary')
+  beforeEach(() => {
+    fs.writeFileSync(file, buff)
+    sbuff = FileBufferSync.fromFile(file)
+  })
 
   it('Should return a valid string representing the internal buffer', () => {
-    assert.strictEqual(str, sbuff.toString())
+    assert.strictEqual(str, sbuff.toString('binary'))
   })
 
   it('Should return a valid base64 string representing the internal buffer', () => {
-    assert.strictEqual(str64, sbuff.toString('binary'))
+    assert.strictEqual(str64, sbuff.toString('base64'))
   })
 
   it('Should throw an error if an invalid encoding is provided', () => {
@@ -605,11 +643,14 @@ describe('Displaying the buffer as a string', () => {
 })
 
 describe('Closing the buffer', () => {
-  const writer = FileBufferSync.fromFile(file)
   const value = 'hello123'
-  writer.writeString(value)
 
-  writer.close()
+  before(() => {
+    const writer = FileBufferSync.fromFile(file)
+    writer.writeString(value)
+
+    writer.close()
+  })
 
   it('Should have a length of data size when buffer is closed', () => {
     assert.strictEqual(fs.statSync(file).size, value.length)

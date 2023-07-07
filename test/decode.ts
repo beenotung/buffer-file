@@ -1,4 +1,4 @@
-import { unpack } from 'msgpack'
+import { unpack } from 'msgpackr'
 import { FileBuffer } from '../src/file-buffer'
 import { FileBufferSync } from '../src/file-buffer-sync'
 

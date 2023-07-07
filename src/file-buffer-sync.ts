@@ -27,6 +27,14 @@ export class FileBufferSync {
   }
 
   rewind(offset: number) {
+    if (offset < 0) {
+      throw new RangeError(`Invalid offset: ${offset}, expect at least 0`)
+    }
+    if (offset > this.length) {
+      throw new RangeError(
+        `Invalid offset: ${offset}, expect not larger than ${this.length}`,
+      )
+    }
     this.writeOffset = this.readOffset = offset
     return this
   }
@@ -75,9 +83,12 @@ export class FileBufferSync {
   writeBuffer(value: Buffer, offset?: number) {
     const byteSize = value.length
     if (typeof offset === 'number') {
+      if (offset < 0) {
+        throw RangeError('offset must be positive')
+      }
       const write = fs.writeSync(this.fd, value, 0, byteSize, offset)
       ensureEnoughWrite(write, byteSize)
-      this.writeOffset = Math.max(this.writeOffset, offset + byteSize)
+      this.writeOffset = offset + byteSize
     } else {
       const write = fs.writeSync(this.fd, value, 0, byteSize, this.writeOffset)
       ensureEnoughWrite(write, byteSize)

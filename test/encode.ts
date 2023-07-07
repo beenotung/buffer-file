@@ -1,4 +1,4 @@
-import { pack } from 'msgpack'
+import { pack } from 'msgpackr'
 import { Stream } from 'stream'
 import { FileBuffer } from '../src/file-buffer'
 import { FileBufferSync } from '../src/file-buffer-sync'
@@ -14,7 +14,7 @@ export function writeEnd(buffer: FileBuffer | FileBufferSync) {
 }
 
 export function sink(source: Stream, dest: FileBuffer) {
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     source.on('data', data => {
       writeData(dest, data)
     })
