@@ -27,6 +27,14 @@ export class FileBuffer {
   }
 
   rewind(offset: number) {
+    if (offset < 0) {
+      throw new RangeError(\`Invalid offset: \${offset}, expect at least 0\`)
+    }
+    if (offset > this.length) {
+      throw new RangeError(
+        \`Invalid offset: \${offset}, expect not larger than \${this.length}\`,
+      )
+    }
     this.writeOffset = this.readOffset = offset
     return this
   }
@@ -92,8 +100,11 @@ export class FileBuffer {
   writeBuffer(value: Buffer, offset?: number): this {
     const byteSize = value.length
     if (typeof offset === 'number') {
+      if (offset < 0) {
+        throw RangeError('offset must be positive')
+      }
       this.queueWrite(value, offset)
-      this.writeOffset = Math.max(this.writeOffset, offset + byteSize)
+      this.writeOffset = offset + byteSize
     } else {
       this.queueWrite(value, this.writeOffset)
       this.writeOffset += byteSize
@@ -123,14 +134,14 @@ export class FileBuffer {
     const length = await this.getLength()
     const readBuffer = Buffer.alloc(1)
     const start = typeof offset === 'number' ? offset : this.readOffset
-    let nullPos = length
+    let nullPos = length - 1
     const resultBuffer: number[] = []
-    for (let i = this.readOffset; i < length; i++) {
-      const result = await this.fd.read(readBuffer, 0, 1, start + i)
+    for (let readPos = start; readPos < length; readPos++) {
+      const result = await this.fd.read(readBuffer, 0, 1, readPos)
       ensureEnoughRead(result.bytesRead, 1)
       const byte = readBuffer[0]
       if (byte === 0x00) {
-        nullPos = start + 1
+        nullPos = readPos
         break
       }
       resultBuffer.push(byte)

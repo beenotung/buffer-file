@@ -27,6 +27,14 @@ export class FileBufferSync {
   }
 
   rewind(offset: number) {
+    if (offset < 0) {
+      throw new RangeError(\`Invalid offset: \${offset}, expect at least 0\`)
+    }
+    if (offset > this.length) {
+      throw new RangeError(
+        \`Invalid offset: \${offset}, expect not larger than \${this.length}\`,
+      )
+    }
     this.writeOffset = this.readOffset = offset
     return this
   }
@@ -75,9 +83,12 @@ export class FileBufferSync {
   writeBuffer(value: Buffer, offset?: number) {
     const byteSize = value.length
     if (typeof offset === 'number') {
+      if (offset < 0) {
+        throw RangeError('offset must be positive')
+      }
       const write = fs.writeSync(this.fd, value, 0, byteSize, offset)
       ensureEnoughWrite(write, byteSize)
-      this.writeOffset = Math.max(this.writeOffset, offset + byteSize)
+      this.writeOffset = offset + byteSize
     } else {
       const write = fs.writeSync(this.fd, value, 0, byteSize, this.writeOffset)
       ensureEnoughWrite(write, byteSize)
@@ -107,14 +118,14 @@ export class FileBufferSync {
     const length = this.length
     const readBuffer = Buffer.alloc(1)
     const start = typeof offset === 'number' ? offset : this.readOffset
-    let nullPos = length
+    let nullPos = length - 1
     const result: number[] = []
-    for (let i = this.readOffset; i < length; i++) {
-      const read = fs.readSync(this.fd, readBuffer, 0, 1, start + i)
+    for (let readPos = start; readPos < length; readPos++) {
+      const read = fs.readSync(this.fd, readBuffer, 0, 1, readPos)
       ensureEnoughRead(read, 1)
       const byte = readBuffer[0]
       if (byte === 0x00) {
-        nullPos = start + 1
+        nullPos = readPos
         break
       }
       result.push(byte)
