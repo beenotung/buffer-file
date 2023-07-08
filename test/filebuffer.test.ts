@@ -5,7 +5,6 @@ import { assert } from 'chai'
 import fs from 'fs'
 import 'mocha'
 import { FileBuffer, FileBufferSync } from '../src'
-import { startDebug } from '../src/debug'
 import {
   ensureEnoughRead,
   ensureEnoughWrite,
