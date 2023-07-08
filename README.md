@@ -4,7 +4,7 @@ A file-based Buffer wrapper that adds automatic read & write offset tracking, st
 
 Inspired from [smart-buffer](https://github.com/JoshGlazebrook/smart-buffer)
 
-[![npm Package Version](https://img.shields.io/npm/v/smart-buffer-file.svg?maxAge=2592000)](https://www.npmjs.com/package/smart-buffer-file)
+[![npm Package Version](https://img.shields.io/npm/v/smart-buffer-file.svg)](https://www.npmjs.com/package/smart-buffer-file)
 
 **Key Features**:
 * Proxies all of the Buffer write and read functions
