@@ -147,38 +147,38 @@ describe('Reading/Writing To/From SmartBuffer', () => {
 
       it('Writing throws an exception', () => {
         assert.throws(
-          () => buffer.writeBigInt64LE((1 as any) as bigint),
+          () => buffer.writeBigInt64LE(1 as any as bigint),
           'Platform does not support Buffer.prototype.writeBigInt64LE.',
         )
         assert.throws(
-          () => buffer.writeBigInt64BE((2 as any) as bigint),
+          () => buffer.writeBigInt64BE(2 as any as bigint),
           'Platform does not support Buffer.prototype.writeBigInt64BE.',
         )
         assert.throws(
-          () => buffer.writeBigUInt64LE((1 as any) as bigint),
+          () => buffer.writeBigUInt64LE(1 as any as bigint),
           'Platform does not support Buffer.prototype.writeBigUInt64LE.',
         )
         assert.throws(
-          () => buffer.writeBigUInt64BE((2 as any) as bigint),
+          () => buffer.writeBigUInt64BE(2 as any as bigint),
           'Platform does not support Buffer.prototype.writeBigUInt64BE.',
         )
       })
 
       it('Inserting throws an exception', () => {
         assert.throws(
-          () => buffer.writeBigInt64LE((1 as any) as bigint, 0),
+          () => buffer.writeBigInt64LE(1 as any as bigint, 0),
           'Platform does not support Buffer.prototype.writeBigInt64LE.',
         )
         assert.throws(
-          () => buffer.writeBigInt64BE((2 as any) as bigint, 0),
+          () => buffer.writeBigInt64BE(2 as any as bigint, 0),
           'Platform does not support Buffer.prototype.writeBigInt64BE.',
         )
         assert.throws(
-          () => buffer.writeBigUInt64LE((1 as any) as bigint, 0),
+          () => buffer.writeBigUInt64LE(1 as any as bigint, 0),
           'Platform does not support Buffer.prototype.writeBigUInt64LE.',
         )
         assert.throws(
-          () => buffer.writeBigUInt64BE((2 as any) as bigint, 0),
+          () => buffer.writeBigUInt64BE(2 as any as bigint, 0),
           'Platform does not support Buffer.prototype.writeBigUInt64BE.',
         )
       })
@@ -219,19 +219,19 @@ describe('Reading/Writing To/From SmartBuffer', () => {
 
       it('Writing throws an exception', () => {
         assert.throws(
-          () => buffer.writeBigInt64LE((1 as any) as bigint),
+          () => buffer.writeBigInt64LE(1 as any as bigint),
           'Platform does not support JS BigInt type.',
         )
         assert.throws(
-          () => buffer.writeBigInt64BE((2 as any) as bigint),
+          () => buffer.writeBigInt64BE(2 as any as bigint),
           'Platform does not support JS BigInt type.',
         )
         assert.throws(
-          () => buffer.writeBigUInt64LE((1 as any) as bigint),
+          () => buffer.writeBigUInt64LE(1 as any as bigint),
           'Platform does not support JS BigInt type.',
         )
         assert.throws(
-          () => buffer.writeBigUInt64BE((2 as any) as bigint),
+          () => buffer.writeBigUInt64BE(2 as any as bigint),
           'Platform does not support JS BigInt type.',
         )
       })
