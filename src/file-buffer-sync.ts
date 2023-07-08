@@ -118,14 +118,14 @@ export class FileBufferSync {
     const length = this.length
     const readBuffer = Buffer.alloc(1)
     const start = typeof offset === 'number' ? offset : this.readOffset
-    let nullPos = length
+    let nullPos = length - 1
     const result: number[] = []
-    for (let i = this.readOffset; i < length; i++) {
-      const read = fs.readSync(this.fd, readBuffer, 0, 1, start + i)
+    for (let readPos = start; readPos < length; readPos++) {
+      const read = fs.readSync(this.fd, readBuffer, 0, 1, readPos)
       ensureEnoughRead(read, 1)
       const byte = readBuffer[0]
       if (byte === 0x00) {
-        nullPos = start + 1
+        nullPos = readPos
         break
       }
       result.push(byte)
