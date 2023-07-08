@@ -377,10 +377,7 @@ describe('Reading/Writing To/From SmartBuffer', () => {
     before(() => {
       const writer = FileBufferSync.fromFile(file)
       writer.writeStringNT(str)
-      const log = startDebug()
-      log('writer length:', writer.length)
       writer.close()
-      log('file size:', fs.statSync(file).size)
     })
 
     it('read string should match written string', () => {
