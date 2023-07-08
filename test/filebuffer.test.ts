@@ -16,6 +16,16 @@ import {
 
 const file = 'tmp.txt'
 
+function cleanFile() {
+  try {
+    fs.unlinkSync(file)
+  } catch (e: any) {
+    if (e.code !== 'ENOENT') {
+      throw e
+    }
+  }
+}
+
 describe('Constructing a SmartBuffer', () => {
   it('should create sync reader from file', function () {
     const reader = FileBufferSync.fromFile(file)
@@ -54,13 +64,6 @@ describe('Reading/Writing To/From SmartBuffer', () => {
     })
 
     it('should equal the correct values that were written above', () => {
-      const log = startDebug()
-      log({
-        read: reader.readOffset,
-        write: reader.writeOffset,
-        len: reader.length,
-        fs: fs.readFileSync('tmp.txt'),
-      })
       assert.strictEqual(reader.readUInt8(), 0xc8)
       assert.strictEqual(reader.readUInt8(), 0xff)
       assert.strictEqual(reader.readInt16BE(), 0x00c8)
@@ -129,6 +132,7 @@ describe('Reading/Writing To/From SmartBuffer', () => {
     })
 
     describe('When BigInt is available but buffer methods are not', () => {
+      let buffer: FileBufferSync
       beforeEach(function () {
         if (
           typeof BigInt === 'undefined' ||
@@ -136,8 +140,8 @@ describe('Reading/Writing To/From SmartBuffer', () => {
         ) {
           this.skip()
         }
+        buffer = FileBufferSync.fromFile(file)
       })
-      const buffer = FileBufferSync.fromFile(file)
 
       // Taking a Number to a BigInt as we do below is semantically invalid,
       // and implicit casting between Number and BigInt throws a TypeError in
@@ -204,12 +208,13 @@ describe('Reading/Writing To/From SmartBuffer', () => {
     })
 
     describe('When BigInt is unavailable', () => {
+      let buffer: FileBufferSync
       beforeEach(function () {
         if (typeof BigInt === 'function') {
           this.skip()
         }
+        buffer = FileBufferSync.fromFile(file)
       })
-      const buffer = FileBufferSync.fromFile(file)
 
       // Taking a Number to a BigInt as we do below is semantically invalid,
       // and implicit casting between Number and BigInt throws a TypeError in
@@ -306,10 +311,15 @@ describe('Reading/Writing To/From SmartBuffer', () => {
     // const reader = SmartBuffer.fromOptions({
     //   encoding: 'ascii',
     // })
-    const reader = FileBufferSync.fromFile(file)
-    reader.writeStringNT('some ascii text')
-    reader.writeStringNT('ѕσмє υтƒ8 тєχт', 'utf8')
-    reader.writeStringNT('first', 0, 'ascii')
+    let reader: FileBufferSync
+    before(() => {
+      cleanFile()
+      reader = FileBufferSync.fromFile(file)
+      reader.writeStringNT('FIRST')
+      reader.writeStringNT('some ascii text')
+      reader.writeStringNT('ѕσмє υтƒ8 тєχт', 'utf8')
+      reader.writeStringNT('first', 0, 'ascii')
+    })
 
     it('should equal the correct strings that were written above', () => {
       assert.strictEqual(reader.readStringNT(), 'first')
@@ -334,8 +344,12 @@ describe('Reading/Writing To/From SmartBuffer', () => {
   })
 
   describe('Null/non-null terminating strings', () => {
-    const reader = FileBufferSync.fromFile(file)
-    reader.writeString('hello\0test\0bleh')
+    let reader: FileBufferSync
+    before(() => {
+      cleanFile()
+      reader = FileBufferSync.fromFile(file)
+      reader.writeString('hello\0test\0bleh')
+    })
 
     it('should equal hello', () => {
       assert.strictEqual(reader.readStringNT(), 'hello')
@@ -360,26 +374,33 @@ describe('Reading/Writing To/From SmartBuffer', () => {
 
   describe('Reading string without specifying length', () => {
     const str = 'hello123'
-    const writer = FileBufferSync.fromFile(file)
-    writer.writeStringNT(str)
-    const log = startDebug()
-    log('writer length:', writer.length)
-    writer.close()
-    log('file size:', fs.statSync(file).size)
+    before(() => {
+      const writer = FileBufferSync.fromFile(file)
+      writer.writeStringNT(str)
+      const log = startDebug()
+      log('writer length:', writer.length)
+      writer.close()
+      log('file size:', fs.statSync(file).size)
+    })
 
-    const reader = FileBufferSync.fromFile(file)
-
-    assert.strictEqual(reader.readStringNT(), str)
+    it('read string should match written string', () => {
+      const reader = FileBufferSync.fromFile(file)
+      assert.strictEqual(reader.readStringNT(), str)
+    })
   })
 
   describe('Write string as specific position', () => {
+    let reader: FileBufferSync
     const str = 'hello123'
-    const writer = FileBufferSync.fromFile(file)
-    writer.writeStringNT(str, 10)
+    before(() => {
+      const writer = FileBufferSync.fromFile(file)
+      writer.writeStringNT(str, 10)
 
-    const reader = FileBufferSync.fromFile(file)
+      reader = FileBufferSync.fromFile(file)
 
-    reader.readOffset = 10
+      reader.readOffset = 10
+    })
+
     it('Should read the correct string from the original position it was written to.', () => {
       assert.strictEqual(reader.readStringNT(), str)
     })
@@ -465,10 +486,13 @@ describe('Reading/Writing To/From SmartBuffer', () => {
     })
 
     describe('Null Terminated Buffer Writing', () => {
-      const buff = FileBufferSync.fromFile(file)
-      buff.writeBufferNT(new Buffer([0x01, 0x02, 0x03, 0x04]))
+      let read1: Buffer
+      before(() => {
+        const buff = FileBufferSync.fromFile(file)
+        buff.writeBufferNT(new Buffer([0x01, 0x02, 0x03, 0x04]))
 
-      const read1 = buff.readBufferNT()
+        read1 = buff.readBufferNT()
+      })
 
       it('Should read the correct null terminated buffer data.', () => {
         assert.equal(read1.length, 4)
@@ -476,8 +500,11 @@ describe('Reading/Writing To/From SmartBuffer', () => {
     })
 
     describe('Reading buffer from invalid offset', () => {
-      const buff = FileBufferSync.fromFile(file)
-      buff.writeBuffer(Buffer.from([1, 2, 3, 4, 5, 6]))
+      let buff: FileBufferSync
+      before(() => {
+        buff = FileBufferSync.fromFile(file)
+        buff.writeBuffer(Buffer.from([1, 2, 3, 4, 5, 6]))
+      })
 
       it('Should throw an exception if attempting to read a Buffer from an invalid offset', () => {
         assert.throws(() => {
@@ -523,6 +550,7 @@ describe('Reading/Writing To/From SmartBuffer', () => {
 
 describe('Skipping around data', () => {
   before(() => {
+    cleanFile()
     const writer = FileBufferSync.fromFile(file)
     writer.writeStringNT('hello')
     writer.writeUInt16LE(6699)
@@ -543,7 +571,7 @@ describe('Skipping around data', () => {
     const reader = FileBufferSync.fromFile(file)
 
     assert.throws(() => {
-      reader.readOffset = 10000
+      reader.rewind(10000)
     })
   })
 })
@@ -601,8 +629,11 @@ describe('Automatic internal buffer resizing', () => {
 })
 
 describe('Clearing the buffer', () => {
-  const writer = FileBufferSync.fromFile(file)
-  writer.writeString('somedata')
+  let writer: FileBufferSync
+  before(() => {
+    writer = FileBufferSync.fromFile(file)
+    writer.writeString('somedata')
+  })
 
   it('Should contain some data.', () => {
     assert.notStrictEqual(writer.length, 0)
