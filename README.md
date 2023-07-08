@@ -12,8 +12,29 @@ Inspired from [smart-buffer](https://github.com/JoshGlazebrook/smart-buffer)
 * Grows the underneath File as needed
 * Useful string operations. (Null terminating strings)
 * Allows for reading/writing values at specific points in the File (random access)
+* Support sync and async version
 * Built in TypeScript (with Type Definitions)
 * Full test coverage
+
+**Supported Format**:
+- Int8
+- Int16BE
+- Int16LE
+- Int32BE
+- Int32LE
+- BigInt64BE
+- BigInt64LE
+- UInt8
+- UInt16BE
+- UInt16LE
+- UInt32BE
+- UInt32LE
+- BigUInt64BE
+- BigUInt64LE
+- FloatBE
+- FloatLE
+- DoubleBE
+- DoubleLE
 
 **Requirements**:
 * sync mode works since Node v0.1.21+
